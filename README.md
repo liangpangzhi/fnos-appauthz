@@ -1,5 +1,9 @@
 # 应用授权管家（appauthz）
 
+[![release](https://img.shields.io/github/v/release/liangpangzhi/fnos-appauthz?label=release)](https://github.com/liangpangzhi/fnos-appauthz/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/liangpangzhi/fnos-appauthz/total)](https://github.com/liangpangzhi/fnos-appauthz/releases)
+[![license](https://img.shields.io/github/license/liangpangzhi/fnos-appauthz)](LICENSE)
+
 飞牛 fnOS 的 `.fpk` 原生应用（Python + 原生网页，无 Docker、无第三方依赖），
 用来**统一批量管理"已安装应用可访问哪些文件夹、是读还是读写"**。
 
@@ -8,6 +12,9 @@ fnOS 默认只能一个个应用、一个个目录地去点：
 装十个应用、配五个目录，就是五十次重复劳动。本应用把它变成一次操作。
 
 ![批量授权（多应用 × 多目录）](docs/screenshot-live-multipath.png)
+
+**下载**：[`appauthz-1.0.6-x86.fpk`](https://github.com/liangpangzhi/fnos-appauthz/releases/download/v1.0.6/appauthz-1.0.6-x86.fpk)（120 KB，无需 Docker）
+→ 应用中心 → 手动安装 → 选择该文件。
 
 ---
 
