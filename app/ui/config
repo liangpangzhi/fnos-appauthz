@@ -1,0 +1,15 @@
+{
+  ".url": {
+    "appauthz.main": {
+      "title": "应用授权管家",
+      "desc": "批量管理应用可访问的文件夹范围",
+      "icon": "images/icon_{0}.png",
+      "type": "iframe",
+      "protocol": "http",
+      "port": "18080",
+      "url": "/",
+      "allUsers": false,
+      "noDisplay": false
+    }
+  }
+}

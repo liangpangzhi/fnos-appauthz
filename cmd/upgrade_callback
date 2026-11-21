@@ -1,0 +1,20 @@
+#!/bin/bash
+# 升级后：保留原有配置（管理密码、端口），必要时补齐缺失字段并重启。
+set -u
+
+NAME="${TRIM_APPNAME:-appauthz}"
+PKGDIR="/var/apps/${NAME}"
+APPDEST="${TRIM_APPDEST:-${PKGDIR}/target}"
+PKGETC="${TRIM_PKGETC:-${PKGDIR}/etc}"
+PKGVAR="${TRIM_PKGVAR:-${PKGDIR}/var}"
+LOGFILE="${PKGVAR}/${NAME}.log"
+
+mkdir -p "${PKGVAR}" "${PKGETC}"
+PY="$(command -v python3 || true)"; [ -n "${PY}" ] || PY="/usr/bin/python3"
+chmod +x "${APPDEST}"/server/*.py 2>/dev/null
+
+"${PY}" "${APPDEST}/server/manage.py" bootstrap \
+    --dest "${APPDEST}" --etc "${PKGETC}" --var "${PKGVAR}" >>"${LOGFILE}" 2>&1
+
+"${PKGDIR}/cmd/main" start
+exit 0

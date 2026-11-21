@@ -1,0 +1,28 @@
+#!/bin/bash
+# 安装后：初始化配置（管理密码 / 端口），然后启动服务。
+set -u
+
+NAME="${TRIM_APPNAME:-appauthz}"
+PKGDIR="/var/apps/${NAME}"
+APPDEST="${TRIM_APPDEST:-${PKGDIR}/target}"
+PKGETC="${TRIM_PKGETC:-${PKGDIR}/etc}"
+PKGVAR="${TRIM_PKGVAR:-${PKGDIR}/var}"
+LOGFILE="${PKGVAR}/${NAME}.log"
+
+mkdir -p "${PKGVAR}" "${PKGETC}" || exit 1
+PY="$(command -v python3 || true)"; [ -n "${PY}" ] || PY="/usr/bin/python3"
+[ -x "${PY}" ] || { echo "未找到 python3" | tee -a "${LOGFILE}" >&2; exit 1; }
+
+chmod +x "${APPDEST}"/server/*.py 2>/dev/null
+
+"${PY}" "${APPDEST}/server/manage.py" bootstrap \
+    --dest "${APPDEST}" --etc "${PKGETC}" --var "${PKGVAR}" >>"${LOGFILE}" 2>&1
+rc=$?
+if [ "${rc}" -ne 0 ]; then
+    msg="初始化配置失败（退出码 ${rc}），详见日志：${LOGFILE}"
+    echo "${msg}" >&2
+    [ -n "${TRIM_TEMP_LOGFILE:-}" ] && echo "${msg}" >>"${TRIM_TEMP_LOGFILE}"
+    exit 1
+fi
+
+"${PKGDIR}/cmd/main" start

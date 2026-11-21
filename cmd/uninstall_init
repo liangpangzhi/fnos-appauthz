@@ -1,0 +1,15 @@
+#!/bin/bash
+# 卸载前：停止服务；按需清理配置与日志。不会触碰任何已存在的应用授权记录。
+set -u
+
+NAME="${TRIM_APPNAME:-appauthz}"
+PKGDIR="/var/apps/${NAME}"
+PKGETC="${TRIM_PKGETC:-${PKGDIR}/etc}"
+PKGVAR="${TRIM_PKGVAR:-${PKGDIR}/var}"
+
+"${PKGDIR}/cmd/main" stop
+
+if [ "${wizard_purge_data:-false}" = "true" ]; then
+    rm -rf "${PKGETC}" "${PKGVAR}"
+fi
+exit 0

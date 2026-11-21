@@ -1,0 +1,8 @@
+# 统一用 LF：cmd/ 下的脚本会被 fnOS 直接执行，CRLF 会导致 "bad interpreter"
+* text=auto eol=lf
+
+# 二进制资源不做行尾转换
+*.png binary
+*.PNG binary
+*.fpk binary
+*.tgz binary

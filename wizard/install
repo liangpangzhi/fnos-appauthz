@@ -1,0 +1,48 @@
+[
+  {
+    "stepTitle": "管理员密码",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "本应用以 root 身份工作，可以修改应用授权与文件夹 ACL，因此必须设置一个管理密码用于登录。请与 fnOS 登录密码区分开，并妥善保管。"
+      },
+      {
+        "type": "password",
+        "field": "wizard_admin_password",
+        "label": "管理密码",
+        "rules": [
+          { "required": true, "message": "请设置管理密码" },
+          { "len": 6, "message": "至少 6 位" }
+        ]
+      },
+      {
+        "type": "password",
+        "field": "wizard_admin_password2",
+        "label": "确认密码",
+        "rules": [
+          { "required": true, "message": "请再次输入管理密码" },
+          { "len": 6, "message": "至少 6 位" }
+        ]
+      }
+    ]
+  },
+  {
+    "stepTitle": "服务端口",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "默认 18080，若与其它应用冲突可改为 18000-19999 之间的空闲端口。安装后也可在应用内「诊断 → 设置」中修改。"
+      },
+      {
+        "type": "text",
+        "field": "wizard_port",
+        "label": "HTTP 端口",
+        "initValue": "18080",
+        "rules": [
+          { "required": true, "message": "请输入端口" },
+          { "pattern": "^[0-9]{4,5}$", "message": "请输入 4-5 位数字端口" }
+        ]
+      }
+    ]
+  }
+]

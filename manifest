@@ -1,0 +1,16 @@
+appname = appauthz
+version = 1.0.6
+display_name = 应用授权管家
+desc = 批量管理已安装应用可访问的文件夹范围（读写/只读）。支持多应用 × 多目录一键授权、授权复制、权限实测校验与失效路径清理。仅管理员可用。
+maintainer = appauthz
+maintainer_url = https://github.com/
+distributor = appauthz
+distributor_url = https://github.com/
+source = thirdparty
+platform = x86
+os_min_version = 1.1.8
+service_port = 18080
+ctl_stop = true
+desktop_uidir = ui
+desktop_applaunchname = appauthz.main
+changelog = 1.0.6 支持一次授权多个文件夹路径（多应用 × 多目录矩阵）；1.0.5 修复选择弹窗无法点击。

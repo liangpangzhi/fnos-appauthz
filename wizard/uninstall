@@ -1,0 +1,11 @@
+[
+  {
+    "stepTitle": "卸载说明",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "卸载不会改动任何已存在的应用授权记录，也不会删除你的任何文件。配置与日志保留在 /vol1/@appconf/appauthz 与 /vol1/@appdata/appauthz；若需彻底清理，卸载后手动删除这两个目录即可。"
+      }
+    ]
+  }
+]

@@ -1,0 +1,7 @@
+#!/bin/bash
+# 升级前：停止旧版本服务。
+set -u
+NAME="${TRIM_APPNAME:-appauthz}"
+PKGDIR="/var/apps/${NAME}"
+"${PKGDIR}/cmd/main" stop
+exit 0

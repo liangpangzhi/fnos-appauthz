@@ -1,0 +1,143 @@
+#!/bin/bash
+# appauthz lifecycle manager: start | stop | restart | status
+set -u
+
+NAME="${TRIM_APPNAME:-appauthz}"
+PKGDIR="/var/apps/${NAME}"
+APPDEST="${TRIM_APPDEST:-${PKGDIR}/target}"
+PKGETC="${TRIM_PKGETC:-${PKGDIR}/etc}"
+PKGVAR="${TRIM_PKGVAR:-${PKGDIR}/var}"
+PIDFILE="${PKGVAR}/${NAME}.pid"
+LOGFILE="${PKGVAR}/${NAME}.log"
+ENTRY="${APPDEST}/server/app.py"
+PORT="${TRIM_SERVICE_PORT:-18080}"
+
+log() { echo "[$(date '+%F %T')] $*" >>"${LOGFILE}" 2>/dev/null; }
+die() { echo "$*" >&2; [ -n "${TRIM_TEMP_LOGFILE:-}" ] && echo "$*" >>"${TRIM_TEMP_LOGFILE}"; exit 1; }
+
+read_port() {
+    local p
+    p="$("${PY}" - "${PKGETC}/settings.json" <<'EOF' 2>/dev/null
+import json,sys
+try:
+    print(json.load(open(sys.argv[1])).get("port") or "")
+except Exception:
+    pass
+EOF
+)"
+    [ -n "${p:-}" ] && PORT="$p"
+}
+
+is_running() {
+    [ -f "${PIDFILE}" ] || return 1
+    local pid
+    pid="$(cat "${PIDFILE}" 2>/dev/null)"
+    [ -n "${pid:-}" ] || return 1
+    kill -0 "${pid}" 2>/dev/null
+}
+
+do_start() {
+    mkdir -p "${PKGVAR}" "${PKGETC}"
+    if is_running; then
+        log "start: already running (pid $(cat ${PIDFILE}))"
+        return 0
+    fi
+    [ -f "${ENTRY}" ] || die "服务入口缺失：${ENTRY}"
+
+    cd "${APPDEST}" || die "无法进入 ${APPDEST}"
+    if command -v setsid >/dev/null 2>&1; then
+        setsid "${PY}" "${ENTRY}" \
+            --dest "${APPDEST}" --etc "${PKGETC}" --var "${PKGVAR}" \
+            --port "${PORT}" >>"${LOGFILE}" 2>&1 &
+    else
+        "${PY}" "${ENTRY}" \
+            --dest "${APPDEST}" --etc "${PKGETC}" --var "${PKGVAR}" \
+            --port "${PORT}" >>"${LOGFILE}" 2>&1 &
+    fi
+    local pid=$!
+    echo "${pid}" >"${PIDFILE}"
+    log "start: spawned pid ${pid} on port ${PORT}"
+
+    # 等待进程存活 + 端口可连接（最多 ~12 秒）
+    "${PY}" - "${pid}" "${PORT}" <<'EOF'
+import socket, sys, time
+pid = int(sys.argv[1]); port = int(sys.argv[2])
+import os
+for _ in range(40):
+    time.sleep(0.3)
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        sys.exit(1)
+    s = socket.socket()
+    s.settimeout(0.4)
+    try:
+        s.connect(("127.0.0.1", port))
+        s.close()
+        sys.exit(0)
+    except Exception:
+        s.close()
+sys.exit(2)
+EOF
+    local rc=$?
+    if [ "${rc}" -ne 0 ]; then
+        if [ "${rc}" -eq 1 ]; then
+            log "start: process exited, tail:"
+            tail -n 20 "${LOGFILE}" >>"${LOGFILE}" 2>/dev/null
+            die "应用启动后立即退出，请查看日志：${LOGFILE}"
+        fi
+        log "start: port ${PORT} not reachable yet (process alive)"
+        die "服务未能在端口 ${PORT} 上监听，请检查端口是否被占用，或查看日志：${LOGFILE}"
+    fi
+    log "start: ready"
+    return 0
+}
+
+do_stop() {
+    if ! is_running; then
+        rm -f "${PIDFILE}"
+        log "stop: not running"
+        return 0
+    fi
+    local pid
+    pid="$(cat "${PIDFILE}")"
+    kill -TERM "-${pid}" 2>/dev/null || kill -TERM "${pid}" 2>/dev/null
+    local i=0
+    while [ "${i}" -lt 40 ]; do
+        sleep 0.25
+        if ! kill -0 "${pid}" 2>/dev/null; then
+            rm -f "${PIDFILE}"
+            log "stop: stopped"
+            return 0
+        fi
+        i=$((i + 1))
+    done
+    kill -KILL "-${pid}" 2>/dev/null || kill -KILL "${pid}" 2>/dev/null
+    rm -f "${PIDFILE}"
+    log "stop: killed"
+    return 0
+}
+
+PY="$(command -v python3 || true)"
+[ -n "${PY}" ] || PY="/usr/bin/python3"
+[ -x "${PY}" ] || die "未找到 python3，无法启动应用"
+read_port
+
+case "${1:-}" in
+    start)   do_start ;;
+    stop)    do_stop ;;
+    restart) do_stop; do_start ;;
+    status)
+        if is_running; then
+            exit 0
+        elif [ -f "${PIDFILE}" ]; then
+            exit 1
+        else
+            exit 3
+        fi
+        ;;
+    *)
+        echo "usage: $0 {start|stop|restart|status}" >&2
+        exit 1
+        ;;
+esac

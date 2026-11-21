@@ -1,0 +1,7 @@
+#!/bin/bash
+# 配置变更后：重启服务以加载新的设置。
+set -u
+NAME="${TRIM_APPNAME:-appauthz}"
+PKGDIR="/var/apps/${NAME}"
+"${PKGDIR}/cmd/main" restart >/dev/null 2>&1
+exit 0
